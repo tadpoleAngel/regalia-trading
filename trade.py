@@ -17,10 +17,6 @@ import requests
 from ai_functions import close_all_positions
 from freezegun import freeze_time
 
-API_KEY = 'PKN8BM6FTSCWVBKMKJ02'
-API_SECRET = 'zht8EBFi1heVrbqf4gVcbPYdhiqboYDGlvNmautg'
-BASE_URL = 'https://paper-api.alpaca.markets'
-
 MIN_VOLATILITY = 50.0
 PERCENT_TO_INVEST_PER_TRADE = 0.20
 WIN_PERCENT = 10000.0
