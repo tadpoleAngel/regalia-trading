@@ -1,3 +1,4 @@
+import os
 import alpaca_trade_api as tradeapi
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import MarketOrderRequest
@@ -12,8 +13,8 @@ from alpaca_trade_api import TimeFrame
 #five trading days instead of just the last five
 #days
 
-API_KEY = 'PKY55WVYHH2MU9I0JLA9'
-API_SECRET = 'qsPOIIZszQ2Y51CTgw1NLM6Ut7TeZGJE2CA8W3Fg'
+API_KEY = os.getenv('API_KEY')
+API_SECRET = os.getenv('API_SECRET')
 BASE_URL = 'https://paper-api.alpaca.markets'
 
 

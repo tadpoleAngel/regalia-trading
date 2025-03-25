@@ -17,8 +17,8 @@ import requests
 from ai_functions import close_all_positions
 from freezegun import freeze_time
 
-API_KEY = 'PKN8BM6FTSCWVBKMKJ02'
-API_SECRET = 'zht8EBFi1heVrbqf4gVcbPYdhiqboYDGlvNmautg'
+API_KEY = os.getenv('API_KEY')
+API_SECRET = os.getenv('API_SECRET')
 BASE_URL = 'https://paper-api.alpaca.markets'
 
 MIN_VOLATILITY = 50.0
