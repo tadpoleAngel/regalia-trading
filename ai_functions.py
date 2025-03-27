@@ -7,7 +7,9 @@ import alpaca.common.exceptions
 import pytz
 import datetime as dt
 from alpaca_trade_api import TimeFrame
+from dotenv import load_dotenv
 
+load_dotenv('secrets.env')
 #TO DO
 #Change these functions to actually gather the last 
 #five trading days instead of just the last five

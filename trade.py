@@ -16,6 +16,9 @@ from alpaca_trade_api import TimeFrame
 import requests
 from ai_functions import close_all_positions
 from freezegun import freeze_time
+from dotenv import load_dotenv
+
+load_dotenv('secrets.env')
 
 API_KEY = os.getenv('API_KEY')
 API_SECRET = os.getenv('API_SECRET')
