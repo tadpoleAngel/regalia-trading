@@ -28,10 +28,11 @@ MIN_VOLATILITY = 50.0
 PERCENT_TO_INVEST_PER_TRADE = 0.20
 WIN_PERCENT = 10000.0
 MIN_CHANGE_1W = 5.0
+MIN_PERCENT_CHANGE_1D = 0.025
 MIN_PERCENT_DROP_FROM_DAILY_HIGH = 0.05
 MAX_PERCENT_DROP_FROM_DAILY_HIGH = 0.10
 TRADING_START = time(10, 15)
-TRADING_END = time(10, 35)
+TRADING_END = time(10, 55)
 
 api = tradeapi.REST(API_KEY, API_SECRET, BASE_URL, api_version='v2')
 trading_client = TradingClient(API_KEY, API_SECRET, paper=True)
@@ -57,14 +58,16 @@ def trade_logic(symbol, current_row, historical_data, equity):
           quantity (int): Number of shares to trade.
     """
     # --- Constants (tweak these as needed) ---
-    MIN_VOLATILITY = 50.0           
-    MIN_CHANGE_1W = 5.0             
-    MIN_PERCENT_DROP_FROM_DAILY_HIGH = 0.05  
-    MAX_PERCENT_DROP_FROM_DAILY_HIGH = 0.10  
+    MIN_VOLATILITY = MIN_VOLATILITY          
+    MIN_CHANGE_1W = MIN_CHANGE_1W
+    MIN_PERCENT_CHANGE_1D = MIN_PERCENT_CHANGE_1D        
+    MIN_PERCENT_DROP_FROM_DAILY_HIGH = MIN_PERCENT_DROP_FROM_DAILY_HIGH
+    MAX_PERCENT_DROP_FROM_DAILY_HIGH = MAX_PERCENT_DROP_FROM_DAILY_HIGH  
 
     try:
         current_close = float(current_row['Close'].iloc[0]) if hasattr(current_row['Close'], 'iloc') else float(current_row['Close'])
         current_high  = float(current_row['High'].iloc[0])  if hasattr(current_row['High'], 'iloc') else float(current_row['High'])
+        current_open  = float(current_row['Open'].iloc[0])  if hasattr(current_row['Open'], 'iloc') else float(current_row['Open'])
     except Exception as e:
         print(f"Error converting current_row values for {symbol}: {e}")
         return 'HOLD', 0
@@ -90,6 +93,9 @@ def trade_logic(symbol, current_row, historical_data, equity):
 
     drop = ((current_close - current_high) / current_high) * 100
     if drop < -(MAX_PERCENT_DROP_FROM_DAILY_HIGH * 100) or drop > -(MIN_PERCENT_DROP_FROM_DAILY_HIGH * 100):
+        return 'HOLD', 0
+
+    if current_close < current_open + (current_open * MIN_PERCENT_CHANGE_1D):
         return 'HOLD', 0
 
     trade_amount = 0.25 * equity
