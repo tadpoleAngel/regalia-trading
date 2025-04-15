@@ -58,11 +58,11 @@ def trade_logic(symbol, current_row, historical_data, equity):
           quantity (int): Number of shares to trade.
     """
     # --- Constants (tweak these as needed) ---
-    MIN_VOLATILITY = MIN_VOLATILITY          
-    MIN_CHANGE_1W = MIN_CHANGE_1W
-    MIN_PERCENT_CHANGE_1D = MIN_PERCENT_CHANGE_1D        
-    MIN_PERCENT_DROP_FROM_DAILY_HIGH = MIN_PERCENT_DROP_FROM_DAILY_HIGH
-    MAX_PERCENT_DROP_FROM_DAILY_HIGH = MAX_PERCENT_DROP_FROM_DAILY_HIGH  
+    # MIN_VOLATILITY = MIN_VOLATILITY          
+    # MIN_CHANGE_1W = MIN_CHANGE_1W
+    # MIN_PERCENT_CHANGE_1D = MIN_PERCENT_CHANGE_1D        
+    # MIN_PERCENT_DROP_FROM_DAILY_HIGH = MIN_PERCENT_DROP_FROM_DAILY_HIGH
+    # MAX_PERCENT_DROP_FROM_DAILY_HIGH = MAX_PERCENT_DROP_FROM_DAILY_HIGH  
 
     try:
         current_close = float(current_row['Close'].iloc[0]) if hasattr(current_row['Close'], 'iloc') else float(current_row['Close'])
@@ -96,6 +96,7 @@ def trade_logic(symbol, current_row, historical_data, equity):
         return 'HOLD', 0
 
     if current_close < current_open + (current_open * MIN_PERCENT_CHANGE_1D):
+        print(f"I skipped {symbol} because the current close is {current_close} and the min close for this symbol is {current_open + (current_open * MIN_PERCENT_CHANGE_1D)}")
         return 'HOLD', 0
 
     trade_amount = 0.25 * equity
@@ -244,10 +245,13 @@ def urgent_listener():
 
 def main():
     global stop_script, errors, insufficient_funds, myEquity
+
     assets = {asset.symbol: asset for asset in api.list_assets(status='active') if asset.tradable and asset.shortable}
     myEquity = float(api.get_account().equity)
     print("Starting main loop...")
     while not stop_script:
+        local_now = datetime.now(pytz.timezone('America/New_York'))
+
         for symbol in assets.keys():
             try:
                 asset_cache = SingleAssetCache(symbol)
@@ -265,30 +269,40 @@ def main():
                     check_open_position(symbol)
                     continue
                 
+                has_displayed_restart_message = False
                 if not (TRADING_START <= datetime.now().time() <= TRADING_END):
                     time_to_wake_up = TRADING_START
                     sleep_seconds = calculate_sleep_time(time_to_wake_up)
-                    print(f"It's {datetime.now().time()}, I'll just nap until it's time for me to place some trades.")
+                    print(f"It's {datetime.now().time()}, on {datetime.now().date()} I'll just nap until it's time for me to place some trades.")
                     print(f"\nSleeping until {time_to_wake_up} EST...")
                     unclosed_positions = len(trading_client.get_all_positions()) > 0
                     while sleep_seconds > 1:
                         if time(16, 1) < datetime.now().time() < time(16, 3) and unclosed_positions:
-                            print(f"\nIt's {datetime.now().time()} and I've got open positions!")
+                            print(f"\nIt's {datetime.now().time()}, on {datetime.now().date()} and I've got open positions!")
                             print("Closing all open positions...")
                             print(close_all_positions())
                             unclosed_positions = False
                             insufficient_funds = False
 
-                        if time(17, 1) < datetime.now().time() < time(17, 3):
+                        # Check if it's time to restart
+                        if time(16, 5) < local_now.time() < time(16, 7) and (not len(sys.argv) > 1 or not sys.argv[1] == "restarted"):  # 2-minute window
                             print("Restarting script...")
-                            os.execv(sys.executable, ['python'] + sys.argv)
+                            os.execl(sys.executable, sys.executable, *sys.argv + ["restarted"])
+                        elif len(sys.argv) > 1 and sys.argv[1] == "restarted" and not has_displayed_restart_message:
+                            print("I'v already restarted, I won't restart again, but I will remove my restart flag at the start of the next trading day.")
+                            has_displayed_restart_message = True
                         hours = int(sleep_seconds // 3600)
                         minutes = int((sleep_seconds % 3600) // 60)
                         seconds = int(sleep_seconds % 60)
                         print(f"\rTime until I wake up: {hours:02d}:{minutes:02d}:{seconds:02d}", end="")
                         time_sleepy.sleep(1)
                         sleep_seconds = calculate_sleep_time(time_to_wake_up)
+                    
                     myEquity = float(api.get_account().equity)
+                    if len(sys.argv) > 1 and sys.argv[1] == "restarted":
+                        print("Looks like we're on a streak, woohoo no changes since yesterday! I'll remove this restart flag so we can keep it rolling. Go eat a cookie, I've got it from here!")
+                        sys.argv.pop(1)
+                    
                     print(f"\nI'm waking up to place some trades, my current equity is {myEquity}")
                 
                 if insufficient_funds:
