@@ -17,6 +17,7 @@ import requests
 from ai_functions import close_all_positions
 from freezegun import freeze_time
 from dotenv import load_dotenv
+import logging
 
 load_dotenv('secrets.env')
 
@@ -36,6 +37,35 @@ TRADING_END = time(10, 55)
 
 api = tradeapi.REST(API_KEY, API_SECRET, BASE_URL, api_version='v2')
 trading_client = TradingClient(API_KEY, API_SECRET, paper=True)
+
+logging.basicConfig(
+    filename="logs.txt",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+def log_trade(symbol, action, quantity, current_close, volatility, week_change, drop):
+    """
+    Log details of a trade when it is placed.
+    """
+    logging.info(
+        f"Trade placed: Symbol={symbol}, Action={action}, Quantity={quantity}, "
+        f"Price={current_close:.2f}, Volatility={volatility:.2f}, "
+        f"Weekly Change={week_change:.2f}%, Daily Drop={drop:.2f}%"
+    )
+
+def log_trade_result(symbol, entry_price, close_price, quantity):
+    """
+    Log the result of a trade when a position is closed.
+    """
+    profit_or_loss = (close_price - entry_price) * quantity
+    percent_change = ((close_price - entry_price) / entry_price) * 100
+    logging.info(
+        f"Position closed: Symbol={symbol}, Entry Price={entry_price:.2f}, "
+        f"Close Price={close_price:.2f}, Quantity={quantity}, "
+        f"Change={profit_or_loss:.2f}, "
+        f"Change %={percent_change:.2f}%"
+    )
 
 # ----------------------------------------------------------------
 # New trade_logic function – trades 25% of available equity.
@@ -101,6 +131,9 @@ def trade_logic(symbol, current_row, historical_data, equity):
 
     trade_amount = 0.25 * equity
     quantity = max(1, int(trade_amount / current_close))
+
+    log_trade(symbol, "SELL", quantity, current_row['Close'], volatility, week_change, drop)
+
     return 'SELL', quantity
 
 # ----------------------------------------------------------------
@@ -217,8 +250,17 @@ def check_open_position(symbol):
         entry_price = float(api.get_position(symbol).avg_entry_price)
         win_price = entry_price - (entry_price * (WIN_PERCENT / 100.0))
         if close <= win_price:
+            try:
+                closed_pos_qty = api.get_position("GCI")
+                closed_pos_qty = float(closed_pos_qty.qty)
+            except tradeapi.rest.APIError as e:
+                if e.code == 40410000:
+                    closed_pos_qty = 0.0
+                else:
+                    raise(e)
             api.close_position(symbol)
             print('Closed', symbol)
+            log_trade_result(symbol, entry_price, close, closed_pos_qty)
             insufficient_funds = False
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
