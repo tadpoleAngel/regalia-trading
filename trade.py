@@ -19,6 +19,8 @@ from freezegun import freeze_time
 from dotenv import load_dotenv
 import logging
 
+from log_funcs import log_trade, log_trade_result
+
 load_dotenv('secrets.env')
 
 API_KEY = os.getenv('API_KEY')
@@ -38,44 +40,6 @@ TRADING_END = time(10, 55)
 api = tradeapi.REST(API_KEY, API_SECRET, BASE_URL, api_version='v2')
 trading_client = TradingClient(API_KEY, API_SECRET, paper=True)
 
-logger = logging.getLogger(__name__)
-
-class ExcludeWarningsFilter(logging.Filter):
-    def filter(self, record):
-        # Exclude specific warning messages
-        return "sleep 3 seconds and retrying" not in record.getMessage()
-
-logger.addFilter(ExcludeWarningsFilter())
-
-logging.basicConfig(
-    filename="logs.txt",
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-
-def log_trade(symbol, action, quantity, current_close, volatility, week_change, drop):
-    """
-    Log details of a trade when it is placed.
-    """
-    logger.info(
-        f"Trade placed: Symbol={symbol}, Action={action}, Quantity={quantity}, "
-        f"Price={current_close:.2f}, Volatility={volatility:.2f}, "
-        f"Weekly Change={week_change:.2f}%, Daily Drop={drop:.2f}%"
-    )
-
-def log_trade_result(symbol, side, entry_price, close_price, quantity):
-    """
-    Log the result of a trade when a position is closed.
-    """
-    profit_or_loss = (close_price - entry_price) * quantity
-    percent_change = ((close_price - entry_price) / entry_price) * 100
-    logger.info(
-        f"Position closed: Symbol={symbol}, Side={side}" 
-        f"Entry Price={entry_price:.2f}, "
-        f"Close Price={close_price:.2f}, Quantity={quantity}, "
-        f"Change={profit_or_loss:.2f}, "
-        f"Change %={percent_change:.2f}%"
-    )
 
 # ----------------------------------------------------------------
 # New trade_logic function – trades 25% of available equity.

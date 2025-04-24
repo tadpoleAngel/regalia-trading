@@ -8,8 +8,7 @@ import pytz
 import datetime as dt
 from alpaca_trade_api import TimeFrame
 from dotenv import load_dotenv
-
-from trade import log_trade_result
+from log_funcs import log_trade, log_trade_result
 
 load_dotenv('secrets.env')
 #TO DO
