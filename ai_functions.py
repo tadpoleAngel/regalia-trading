@@ -9,6 +9,8 @@ import datetime as dt
 from alpaca_trade_api import TimeFrame
 from dotenv import load_dotenv
 
+from trade import log_trade_result
+
 load_dotenv('secrets.env')
 #TO DO
 #Change these functions to actually gather the last 
@@ -82,6 +84,7 @@ def close_all_positions():
             try:
                 trading_client.close_position(position.symbol)
                 results[position.symbol] = "Closed successfully"
+                log_trade_result(position.symbol, position.side, position.avg_entry_price, position.current_price, position.qty)
             except Exception as e:
                 all_successful = False
                 results[position.symbol] = f"Failed to close: {str(e)}"

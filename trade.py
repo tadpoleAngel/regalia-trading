@@ -40,6 +40,13 @@ trading_client = TradingClient(API_KEY, API_SECRET, paper=True)
 
 logger = logging.getLogger(__name__)
 
+class ExcludeWarningsFilter(logging.Filter):
+    def filter(self, record):
+        # Exclude specific warning messages
+        return "sleep 3 seconds and retrying" not in record.getMessage()
+
+logger.addFilter(ExcludeWarningsFilter())
+
 logging.basicConfig(
     filename="logs.txt",
     level=logging.INFO,
@@ -56,14 +63,15 @@ def log_trade(symbol, action, quantity, current_close, volatility, week_change, 
         f"Weekly Change={week_change:.2f}%, Daily Drop={drop:.2f}%"
     )
 
-def log_trade_result(symbol, entry_price, close_price, quantity):
+def log_trade_result(symbol, side, entry_price, close_price, quantity):
     """
     Log the result of a trade when a position is closed.
     """
     profit_or_loss = (close_price - entry_price) * quantity
     percent_change = ((close_price - entry_price) / entry_price) * 100
     logger.info(
-        f"Position closed: Symbol={symbol}, Entry Price={entry_price:.2f}, "
+        f"Position closed: Symbol={symbol}, Side={side}" 
+        f"Entry Price={entry_price:.2f}, "
         f"Close Price={close_price:.2f}, Quantity={quantity}, "
         f"Change={profit_or_loss:.2f}, "
         f"Change %={percent_change:.2f}%"

@@ -1,0 +1,5 @@
+2025-04-24 10:22:00,694 - INFO - Trade placed: Symbol=AEVA, Action=SELL, Quantity=29150, Price=6.74, Volatility=134.99, Weekly Change=60.48%, Daily Drop=-6.13%
+2025-04-24 10:38:17,556 - INFO - Trade placed: Symbol=GRAL, Action=SELL, Quantity=5819, Price=33.76, Volatility=125.23, Weekly Change=7.17%, Daily Drop=-6.71%
+2025-04-24 10:45:13,940 - INFO - Trade placed: Symbol=MAIA, Action=SELL, Quantity=95840, Price=2.05, Volatility=84.12, Weekly Change=20.59%, Daily Drop=-8.89%
+2025-04-24 10:46:19,940 - INFO - Trade placed: Symbol=NG, Action=SELL, Quantity=42071, Price=4.67, Volatility=162.75, Weekly Change=38.17%, Daily Drop=-7.62%
+2025-04-24 10:46:20,266 - INFO - Trade placed: Symbol=NGNE, Action=SELL, Quantity=12724, Price=15.44, Volatility=187.18, Weekly Change=7.00%, Daily Drop=-9.18%
