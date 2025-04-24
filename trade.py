@@ -38,6 +38,8 @@ TRADING_END = time(10, 55)
 api = tradeapi.REST(API_KEY, API_SECRET, BASE_URL, api_version='v2')
 trading_client = TradingClient(API_KEY, API_SECRET, paper=True)
 
+logger = logging.getLogger(__name__)
+
 logging.basicConfig(
     filename="logs.txt",
     level=logging.INFO,
@@ -48,7 +50,7 @@ def log_trade(symbol, action, quantity, current_close, volatility, week_change, 
     """
     Log details of a trade when it is placed.
     """
-    logging.info(
+    logger.info(
         f"Trade placed: Symbol={symbol}, Action={action}, Quantity={quantity}, "
         f"Price={current_close:.2f}, Volatility={volatility:.2f}, "
         f"Weekly Change={week_change:.2f}%, Daily Drop={drop:.2f}%"
@@ -60,7 +62,7 @@ def log_trade_result(symbol, entry_price, close_price, quantity):
     """
     profit_or_loss = (close_price - entry_price) * quantity
     percent_change = ((close_price - entry_price) / entry_price) * 100
-    logging.info(
+    logger.info(
         f"Position closed: Symbol={symbol}, Entry Price={entry_price:.2f}, "
         f"Close Price={close_price:.2f}, Quantity={quantity}, "
         f"Change={profit_or_loss:.2f}, "
