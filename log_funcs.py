@@ -8,7 +8,9 @@ class ExcludeWarningsFilter(logging.Filter):
         # Exclude specific warning messages
         return "sleep 3 seconds and retrying" not in record.getMessage()
 
-logger.addFilter(ExcludeWarningsFilter())
+# Apply to root so that I don't have to have all the rate limiting notifications
+# in my log file
+logging.getLogger().addFilter(ExcludeWarningsFilter())
 
 logging.basicConfig(
     filename="logs.txt",
@@ -26,11 +28,11 @@ def log_trade(symbol, action, quantity, current_close, volatility, week_change, 
         f"Weekly Change={week_change:.2f}%, Daily Drop={drop:.2f}%"
     )
 
-def log_trade_result(symbol, side, entry_price, close_price, quantity):
+def log_trade_result(symbol, side, entry_price: float, close_price: float, quantity):
     """
     Log the result of a trade when a position is closed.
     """
-    profit_or_loss = (close_price - entry_price) * quantity
+    profit_or_loss = (close_price - entry_price) * abs(quantity)
     percent_change = ((close_price - entry_price) / entry_price) * 100
     logger.info(
         f"Position closed: Symbol={symbol}, Side={side}" 

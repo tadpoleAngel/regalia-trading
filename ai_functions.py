@@ -83,7 +83,7 @@ def close_all_positions():
             try:
                 trading_client.close_position(position.symbol)
                 results[position.symbol] = "Closed successfully"
-                log_trade_result(position.symbol, position.side, position.avg_entry_price, position.current_price, position.qty)
+                log_trade_result(position.symbol, position.side, float(position.avg_entry_price), float(position.current_price), float(position.qty))
             except Exception as e:
                 all_successful = False
                 results[position.symbol] = f"Failed to close: {str(e)}"
