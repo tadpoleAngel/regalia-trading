@@ -100,15 +100,17 @@ def trade_logic(symbol, current_row, historical_data, equity):
         return 'HOLD', 0
 
     if current_close < current_open + (current_open * MIN_PERCENT_CHANGE_1D):
-        print(f"I skipped {symbol} because the current close is {current_close} and the min close for this symbol is {current_open + (current_open * MIN_PERCENT_CHANGE_1D)}")
+        # print(f"I skipped {symbol} because the current close is {current_close} and the min close for this symbol is {current_open + (current_open * MIN_PERCENT_CHANGE_1D)}")
         return 'HOLD', 0
 
     trade_amount = 0.25 * equity
     quantity = max(1, int(trade_amount / current_close))
 
-    log_trade(symbol, "SELL", quantity, current_row['Close'], volatility, week_change, drop)
+    side = 'BUY'
 
-    return 'SELL', quantity
+    log_trade(symbol, side, quantity, current_row['Close'], volatility, week_change, drop)
+
+    return side, quantity
 
 # ----------------------------------------------------------------
 # AssetCache and SingleAssetCache using Alpaca free tier data.
