@@ -10,7 +10,10 @@ class ExcludeWarningsFilter(logging.Filter):
 
 # Apply to root so that I don't have to have all the rate limiting notifications
 # in my log file
-logging.getLogger().addFilter(ExcludeWarningsFilter())
+# Apply the filter to all active loggers
+exclude_filter = ExcludeWarningsFilter()
+for logger_name in logging.root.manager.loggerDict:
+    logging.getLogger(logger_name).addFilter(exclude_filter)
 
 logging.basicConfig(
     filename="logs.txt",
