@@ -11,3 +11,5 @@ pytz>=2021.1
 requests>=2.26.0
 alpaca-py
 #>=1.4.0
+torch
+matplotlib
