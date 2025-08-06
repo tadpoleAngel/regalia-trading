@@ -1,3 +1,4 @@
+import os
 import torch
 from torch.utils.data import DataLoader, random_split
 from torch.nn import CrossEntropyLoss
@@ -6,16 +7,13 @@ import matplotlib.pyplot as plt
 from trade_model import TradeDecisionModel
 from dataset import TradeDataset
 
-# 🔁 Allow repeated experiments
+
 def train_model(seed=42, epochs=20):
     torch.manual_seed(seed)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     dataset = TradeDataset("logs.txt")
 
-    print(f"Dataset size: {len(dataset)} samples")
-
-    # 📊 Split into 80% train / 20% test
     train_size = int(0.8 * len(dataset))
     test_size = len(dataset) - train_size
     train_set, test_set = random_split(dataset, [train_size, test_size])
@@ -24,16 +22,26 @@ def train_model(seed=42, epochs=20):
     test_loader = DataLoader(test_set, batch_size=16, shuffle=False)
 
     model = TradeDecisionModel().to(device)
+    pkl_path = 'regalai/regalai.pkl'
+    if os.path.exists(pkl_path) and os.path.getsize(pkl_path) > 0:
+        try:
+            checkpoint = torch.load(pkl_path, map_location=device, weights_only=False)
+            model.load_state_dict(checkpoint['model_state'])
+            print("Loaded model weights from regalai/regalai.pkl")
+        except Exception as e:
+            print(f"Failed to load model weights from {pkl_path}: {e}\nTraining from scratch.")
+    else:
+        if os.path.exists(pkl_path):
+            print(f"{pkl_path} exists but is empty. Training from scratch.")
+        else:
+            print("No existing model found. Training from scratch.")
     optimizer = Adam(model.parameters(), lr=0.001)
     criterion = CrossEntropyLoss()
 
     train_losses, test_losses, test_accuracies = [], [], []
 
-    # 📈 Live Plot Setup
     plt.ion()
     fig, ax = plt.subplots(2, 1, figsize=(8, 6))
-    ax[0].set_title("Loss over Epochs")
-    ax[1].set_title("Test Accuracy")
 
     for epoch in range(epochs):
         model.train()
@@ -50,7 +58,6 @@ def train_model(seed=42, epochs=20):
 
         train_losses.append(total_train_loss / len(train_loader))
 
-        # 🎯 Evaluation
         model.eval()
         total_test_loss = 0
         correct, total = 0, 0
@@ -71,7 +78,6 @@ def train_model(seed=42, epochs=20):
 
         print(f"Epoch {epoch+1}: Train Loss={train_losses[-1]:.4f}, Test Loss={test_loss:.4f}, Accuracy={accuracy:.2%}")
 
-        # 📉 Live Plot Updates
         ax[0].clear()
         ax[1].clear()
 
@@ -87,14 +93,13 @@ def train_model(seed=42, epochs=20):
 
         plt.pause(0.1)
 
-    # 🔐 Save final model
     torch.save({
         'model_state': model.state_dict(),
         'model_class': TradeDecisionModel
-    }, 'trade_model.pkl')
+    }, 'regalai/regalai.pkl')
 
     plt.ioff()
     plt.show()
 
 if __name__ == "__main__":
-    train_model()
+    train_model(epochs=2000)
